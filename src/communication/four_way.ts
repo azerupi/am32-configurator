@@ -20,7 +20,7 @@ export enum FOUR_WAY_COMMANDS {
     cmd_DeviceReadEEprom = 0x3D,
     cmd_DeviceWriteEEprom = 0x3E,
     cmd_InterfaceSetMode = 0x3F,
-  };
+};
 
 export enum FOUR_WAY_ACK {
     ACK_OK = 0x00,
@@ -34,7 +34,7 @@ export enum FOUR_WAY_ACK {
     ACK_I_INVALID_CHANNEL = 0x08,
     ACK_I_INVALID_PARAM = 0x09,
     ACK_D_GENERAL_ERROR = 0x0F,
-  };
+};
 
 export class FourWay {
     static instance: FourWay;
@@ -56,9 +56,9 @@ export class FourWay {
     }
 
     constructor (
-      private readonly log: ((s: string) => void),
-      private readonly logError: ((s: string) => void),
-      private readonly logWarning: ((s: string) => void)
+        private readonly log: ((s: string) => void),
+        private readonly logError: ((s: string) => void),
+        private readonly logWarning: ((s: string) => void)
     ) {
     }
 
@@ -147,7 +147,8 @@ export class FourWay {
         const eepromOffset = mcu.getEepromOffset();
 
         try {
-            const fileNameRead = await this.readAddress(eepromOffset - 32, 32);
+            const fileNameOffset = (eepromOffset - 32) >> mcu.getEepromAddressShift();
+            const fileNameRead = await this.readAddress(fileNameOffset, 32);
             const fileName = new TextDecoder().decode(fileNameRead!.params.slice(0, fileNameRead?.params.indexOf(0x0)));
 
             if (/[A-Z0-9_]+/.test(fileName)) {
@@ -162,7 +163,8 @@ export class FourWay {
 
             mcu.getInfo().layoutSize = Mcu!.LAYOUT_SIZE;
 
-            const settingsArray = (await this.readAddress(eepromOffset, mcu.getInfo().layoutSize))!.params;
+            const settingsArrayOffset = eepromOffset >> mcu.getEepromAddressShift();
+            const settingsArray = (await this.readAddress(settingsArrayOffset, mcu.getInfo().layoutSize))!.params;
             mcu.getInfo().settings = bufferToSettings(settingsArray);
             mcu.getInfo().settingsBuffer = settingsArray;
 
@@ -318,8 +320,8 @@ export class FourWay {
 
     writeAddress (address: number, data: Uint8Array) {
         console.log(address, data);
-    // const message = this.makePackage(FOUR_WAY_COMMANDS.cmd_DeviceWrite, data, address);
-    // return Serial.write(data, address);
+        // const message = this.makePackage(FOUR_WAY_COMMANDS.cmd_DeviceWrite, data, address);
+        // return Serial.write(data, address);
     }
 
     /**
